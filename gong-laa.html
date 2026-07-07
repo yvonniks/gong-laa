@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>講啦 GóngLaa — Cantonese Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+HK:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tile:    #ecefe7;   /* pale HK-tile green-grey page */
+    --plate:   #fdfdfa;   /* minibus plate white */
+    --blue:    #1f3f97;   /* minibus destination blue */
+    --blue-dk: #162f74;
+    --red:     #d6402f;   /* minibus route-number red */
+    --red-dk:  #b23122;
+    --ink:     #23262b;
+    --muted:   #6e756b;
+    --line:    #cfd4c5;
+    --line-soft: #dde1d4;
+    --green:   #2c7a4b;
+    --green-bg:#e3efe6;
+    --red-bg:  #f9e6e2;
+    --blue-bg: #e5eaf7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--tile);
+    background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 44px 44px;
+    color: var(--ink);
+    font-family: 'Archivo', 'Noto Sans HK', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .zh { font-family: 'Noto Sans HK', sans-serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible, .chip:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+
+  /* ───── HEADER ───── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 28px;
+    border-bottom: 2px solid var(--ink);
+    background: var(--plate);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-plate {
+    background: var(--plate);
+    border: 2.5px solid var(--blue);
+    box-shadow: 0 0 0 3px var(--plate), 0 0 0 4.5px var(--ink);
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-family: 'Noto Sans HK', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    line-height: 1.2;
+    color: var(--blue);
+    letter-spacing: 2px;
+    user-select: none;
+  }
+  .brand-plate em { font-style: normal; color: var(--red); }
+  .brand-copy { display: flex; flex-direction: column; }
+  .brand-name {
+    font-weight: 800;
+    font-stretch: 115%;
+    font-size: 17px;
+    letter-spacing: 0.4px;
+    text-transform: lowercase;
+  }
+  .brand-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .voice-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    background: var(--plate);
+    color: var(--muted);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .voice-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+  .voice-pill.ok    .voice-dot { background: var(--green); }
+  .voice-pill.warn  .voice-dot { background: #c98a1b; }
+  .voice-pill.bad   .voice-dot { background: var(--red); }
+
+  /* ───── MODE + LEVEL BAR ───── */
+  .control-bar {
+    max-width: 900px;
+    width: 100%;
+    margin: 26px auto 0;
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .mode-switch {
+    display: flex;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--plate);
+  }
+  .mode-btn {
+    border: none;
+    background: transparent;
+    padding: 9px 20px;
+    font-weight: 700;
+    font-stretch: 110%;
+    font-size: 14px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .mode-btn .zh { font-size: 15px; font-weight: 700; }
+  .mode-btn + .mode-btn { border-left: 2px solid var(--ink); }
+  .mode-btn.active { background: var(--blue); color: #fff; }
+
+  .level-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .level-btn {
+    border: 1.5px solid var(--line);
+    background: var(--plate);
+    border-radius: 999px;
+    padding: 7px 15px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .level-btn .zh { font-size: 12px; }
+  .level-btn .count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .level-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .level-btn.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+  .level-btn.active .count { color: #ffd9d3; }
+
+  /* ───── SUB CONTROLS (words only) ───── */
+  .sub-bar {
+    max-width: 900px;
+    width: 100%;
+    margin: 16px auto 0;
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .dir-switch {
+    display: flex;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--plate);
+    flex: none;
+  }
+  .dir-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 13px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .dir-btn + .dir-btn { border-left: 1.5px solid var(--line); }
+  .dir-btn.active { background: var(--blue-bg); color: var(--blue); font-weight: 600; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    border: 1.5px solid var(--line);
+    background: var(--plate);
+    border-radius: 999px;
+    padding: 5px 13px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .chip .zh { font-size: 12px; }
+  .chip:hover { border-color: var(--blue); color: var(--blue); }
+  .chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* ───── STAGE ───── */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 26px 20px 40px;
+    width: 100%;
+  }
+  .stage { width: 100%; max-width: 660px; }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--plate);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--red);
+    transition: width 0.25s ease;
+  }
+  .progress-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ───── THE PLATE (flashcard) ───── */
+  .plate {
+    position: relative;
+    background: var(--plate);
+    border: 2.5px solid var(--ink);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 6px 6px 0 rgba(35, 38, 43, 0.16);
+  }
+  .plate-inner {
+    border: 3px solid var(--blue);
+    border-radius: 10px;
+    min-height: 340px;
+    padding: 46px 34px 38px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+  }
+  .bolt {
+    position: absolute;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--tile);
+    border: 1.5px solid var(--ink);
+  }
+  .bolt.tl { top: 7px; left: 7px; }
+  .bolt.tr { top: 7px; right: 7px; }
+  .bolt.bl { bottom: 7px; left: 7px; }
+  .bolt.br { bottom: 7px; right: 7px; }
+
+  .route-chip {
+    position: absolute;
+    top: -16px;
+    left: 28px;
+    background: var(--red);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 5px 13px;
+    border-radius: 8px;
+    border: 2px solid var(--ink);
+    letter-spacing: 0.5px;
+  }
+  .deck-chip {
+    position: absolute;
+    top: -14px;
+    right: 28px;
+    background: var(--plate);
+    color: var(--blue);
+    font-weight: 700;
+    font-stretch: 112%;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: 2px solid var(--blue);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .prompt-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--red);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .big-char {
+    font-family: 'Noto Sans HK', sans-serif;
+    font-weight: 900;
+    color: var(--blue);
+    font-size: clamp(56px, 12vw, 92px);
+    line-height: 1.15;
+    letter-spacing: 4px;
+    word-break: keep-all;
+  }
+  .big-char.long { font-size: clamp(30px, 6vw, 46px); letter-spacing: 2px; line-height: 1.5; }
+  .big-en {
+    font-weight: 800;
+    font-stretch: 115%;
+    font-size: clamp(26px, 5vw, 38px);
+    color: var(--blue);
+    line-height: 1.3;
+    max-width: 30ch;
+  }
+  .hint {
+    margin-top: 26px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .hint kbd {
+    font-family: inherit;
+    border: 1.5px solid var(--line);
+    border-bottom-width: 3px;
+    border-radius: 5px;
+    padding: 1px 7px;
+    background: var(--plate);
+  }
+
+  .jyutping {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: clamp(17px, 3vw, 22px);
+    color: var(--red);
+    margin-top: 14px;
+    letter-spacing: 0.5px;
+  }
+  .meaning {
+    font-weight: 700;
+    font-stretch: 110%;
+    font-size: clamp(18px, 3.4vw, 24px);
+    color: var(--ink);
+    margin-top: 10px;
+  }
+  .speak-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 20px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: var(--plate);
+    padding: 8px 18px;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--ink);
+    transition: background 0.15s;
+  }
+  .speak-btn:hover { background: var(--blue-bg); }
+  .speak-btn svg { width: 16px; height: 16px; fill: var(--red); }
+
+  .example-box {
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1.5px dashed var(--line);
+    width: 100%;
+    max-width: 480px;
+  }
+  .example-zh {
+    font-family: 'Noto Sans HK', sans-serif;
+    font-weight: 500;
+    font-size: 19px;
+    color: var(--ink);
+    line-height: 1.7;
+  }
+  .example-zh .hl { color: var(--red); font-weight: 700; }
+  .example-jp {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--blue);
+    margin-top: 8px;
+    line-height: 1.7;
+  }
+  .example-en { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  .example-speak {
+    border: none;
+    background: none;
+    color: var(--red);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    margin-top: 10px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .example-speak:hover { color: var(--red-dk); }
+  .phrase-note {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--tile);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    max-width: 460px;
+    line-height: 1.6;
+  }
+
+  /* ───── ACTION ROW ───── */
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    padding: 13px 26px;
+    font-weight: 800;
+    font-stretch: 112%;
+    font-size: 15px;
+    background: var(--plate);
+    color: var(--ink);
+    box-shadow: 3px 3px 0 rgba(35,38,43,0.18);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(35,38,43,0.18); }
+  .btn .key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 11px;
+    border: 1.5px solid currentColor;
+    border-radius: 5px;
+    padding: 1px 6px;
+    opacity: 0.75;
+  }
+  .btn-reveal { background: var(--blue); border-color: var(--blue-dk); color: #fff; padding: 13px 40px; }
+  .btn-reveal:hover { background: var(--blue-dk); }
+  .btn-good { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+  .btn-good:hover { background: #d3e7d9; }
+  .btn-again { background: var(--red-bg); color: var(--red-dk); border-color: var(--red-dk); }
+  .btn-again:hover { background: #f3d6d0; }
+  .btn-skip { font-weight: 600; color: var(--muted); border-color: var(--line); box-shadow: none; }
+  .btn-skip:hover { color: var(--ink); }
+
+  /* ───── STATS STRIP ───── */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-top: 26px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .stats .good b { color: var(--green); }
+  .stats .bad b { color: var(--red); }
+
+  .footer-hints {
+    text-align: center;
+    padding: 18px 20px 26px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 2;
+  }
+  .footer-hints kbd {
+    font-family: inherit;
+    border: 1.5px solid var(--line);
+    border-bottom-width: 3px;
+    border-radius: 5px;
+    padding: 0 6px;
+    background: var(--plate);
+    margin: 0 2px;
+  }
+
+  /* ───── DONE PANEL ───── */
+  .done-title {
+    font-family: 'Noto Sans HK', sans-serif;
+    font-weight: 900;
+    font-size: 44px;
+    color: var(--blue);
+    letter-spacing: 4px;
+  }
+  .done-sub { margin-top: 10px; font-weight: 700; font-stretch: 112%; font-size: 18px; color: var(--ink); }
+  .done-stats {
+    display: flex;
+    gap: 34px;
+    margin-top: 26px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .done-stat { text-align: center; }
+  .done-stat .num { font-weight: 800; font-stretch: 115%; font-size: 34px; color: var(--blue); }
+  .done-stat .num.good { color: var(--green); }
+  .done-stat .num.bad { color: var(--red); }
+  .done-stat .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%) translateY(90px);
+    background: var(--plate);
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 4px 4px 0 rgba(35,38,43,0.18);
+    transition: transform 0.25s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.good { color: var(--green); border-color: var(--green); }
+  .toast.bad { color: var(--red-dk); border-color: var(--red-dk); }
+
+  .empty-msg {
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 12px 16px; }
+    .brand-tag { display: none; }
+    .voice-pill span.vp-text { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+    .control-bar, .sub-bar { padding: 0 14px; }
+    .plate-inner { padding: 40px 18px 30px; min-height: 300px; }
+    .route-chip { left: 16px; }
+    .deck-chip { right: 16px; }
+    .btn { padding: 12px 18px; font-size: 14px; }
+    .btn .key { display: none; }
+    main { padding: 22px 14px 34px; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeUp 0.22s ease; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-plate">講<em>啦!</em></div>
+    <div class="brand-copy">
+      <span class="brand-name">góng laa — say it!</span>
+      <span class="brand-tag">cantonese flashcards · jyutping · audio</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="voice-pill" id="voicePill" title="Audio uses your device's built-in Cantonese voice. On iPhone/Mac: Settings → Accessibility → Spoken Content → Voices → Chinese (Hong Kong).">
+      <span class="voice-dot"></span><span class="vp-text" id="voicePillText">checking voice…</span>
+    </div>
+  </div>
+</header>
+
+<div class="control-bar">
+  <div class="mode-switch" role="tablist" aria-label="Study mode">
+    <button class="mode-btn active" id="modeWords" role="tab" aria-selected="true"><span class="zh">生字</span> Words</button>
+    <button class="mode-btn" id="modePhrases" role="tab" aria-selected="false"><span class="zh">講嘢</span> Phrases</button>
+  </div>
+  <div class="level-tabs" id="levelTabs"></div>
+</div>
+
+<div class="sub-bar" id="subBar">
+  <div class="dir-switch" id="dirSwitch">
+    <button class="dir-btn active" data-dir="en2zh" title="See English, produce Cantonese">EN → 中</button>
+    <button class="dir-btn" data-dir="zh2en" title="See the character, recall the meaning">中 → EN</button>
+  </div>
+  <div class="chip-row" id="chipRow"></div>
+</div>
+
+<main>
+  <div class="stage">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 0</div>
+    </div>
+
+    <div class="plate">
+      <div class="route-chip" id="routeChip">1 / 1</div>
+      <div class="deck-chip" id="deckChip">Beginner</div>
+      <div class="plate-inner" id="plateInner">
+        <span class="bolt tl"></span><span class="bolt tr"></span><span class="bolt bl"></span><span class="bolt br"></span>
+        <div id="cardBody"></div>
+      </div>
+    </div>
+
+    <div class="actions" id="actionRow"></div>
+
+    <div class="stats">
+      <span>seen <b id="statSeen">0</b></span>
+      <span class="good">got it <b id="statGood">0</b></span>
+      <span class="bad">again <b id="statBad">0</b></span>
+      <span>accuracy <b id="statAcc">–</b></span>
+    </div>
+  </div>
+</main>
+
+<div class="footer-hints">
+  <kbd>space</kbd> reveal / replay &nbsp; <kbd>1</kbd> got it &nbsp; <kbd>2</kbd> again &nbsp; <kbd>→</kbd> skip &nbsp; <kbd>p</kbd> play audio
+  <br>audio needs a Cantonese (zh-HK) voice on your device — most phones &amp; Macs have one built in
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WORDS = [
+{zh:"眼",jp:"ngaan5",en:"eye",ex:"我對眼好攰。",exj:"ngo5 deoi3 ngaan5 hou2 gui6",exen:"My eyes are really tired.",cat:"body",lv:"Beginner"},
+{zh:"耳仔",jp:"ji5 zai2",en:"ear",ex:"隻兔仔有對長耳仔。",exj:"zek3 tou3 zai2 jau5 deoi3 coeng4 ji5 zai2",exen:"The rabbit has a pair of long ears.",cat:"body",lv:"Beginner"},
+{zh:"手",jp:"sau2",en:"hand",ex:"食飯之前要洗手。",exj:"sik6 faan6 zi1 cin4 jiu3 sai2 sau2",exen:"Wash your hands before eating.",cat:"body",lv:"Beginner"},
+{zh:"腳",jp:"goek3",en:"foot / leg",ex:"我隻腳好痛。",exj:"ngo5 zek3 goek3 hou2 tung3",exen:"My foot really hurts.",cat:"body",lv:"Beginner"},
+{zh:"頭",jp:"tau4",en:"head",ex:"我今日好頭痛。",exj:"ngo5 gam1 jat6 hou2 tau4 tung3",exen:"I have a bad headache today.",cat:"body",lv:"Beginner"},
+{zh:"鼻",jp:"bei6",en:"nose",ex:"佢個鼻好高。",exj:"keoi5 go3 bei6 hou2 gou1",exen:"He has a tall nose.",cat:"body",lv:"Beginner"},
+{zh:"口",jp:"hau2",en:"mouth",ex:"開大個口睇下。",exj:"hoi1 daai6 go3 hau2 tai2 haa5",exen:"Open your mouth wide, let me have a look.",cat:"body",lv:"Beginner"},
+{zh:"牙",jp:"ngaa4",en:"tooth",ex:"我朝早晚黑都刷牙。",exj:"ngo5 ziu1 zou2 maan5 hak1 dou1 caat3 ngaa4",exen:"I brush my teeth morning and night.",cat:"body",lv:"Beginner"},
+{zh:"頭髮",jp:"tau4 faat3",en:"hair",ex:"佢啲頭髮好長。",exj:"keoi5 di1 tau4 faat3 hou2 coeng4",exen:"Her hair is very long.",cat:"body",lv:"Elementary"},
+{zh:"肚",jp:"tou5",en:"belly / stomach",ex:"我個肚有啲唔舒服。",exj:"ngo5 go3 tou5 jau5 di1 m4 syu1 fuk6",exen:"My stomach feels a bit off.",cat:"body",lv:"Elementary"},
+{zh:"山",jp:"saan1",en:"mountain",ex:"香港有好多山。",exj:"hoeng1 gong2 jau5 hou2 do1 saan1",exen:"Hong Kong has lots of mountains.",cat:"nature",lv:"Beginner"},
+{zh:"水",jp:"seoi2",en:"water",ex:"我想飲杯水。",exj:"ngo5 soeng2 jam2 bui1 seoi2",exen:"I want to drink a glass of water.",cat:"nature",lv:"Beginner"},
+{zh:"樹",jp:"syu6",en:"tree",ex:"公園入面有好多樹。",exj:"gung1 jyun2 jap6 min6 jau5 hou2 do1 syu6",exen:"There are many trees in the park.",cat:"nature",lv:"Beginner"},
+{zh:"木",jp:"muk6",en:"wood",ex:"呢張檯係木做嘅。",exj:"ni1 zoeng1 toi2 hai6 muk6 zou6 ge3",exen:"This table is made of wood.",cat:"nature",lv:"Beginner"},
+{zh:"花",jp:"faa1",en:"flower",ex:"呢啲花好靚。",exj:"ni1 di1 faa1 hou2 leng3",exen:"These flowers are beautiful.",cat:"nature",lv:"Beginner"},
+{zh:"海",jp:"hoi2",en:"sea",ex:"我哋去海邊玩啦。",exj:"ngo5 dei6 heoi3 hoi2 bin1 waan2 laa1",exen:"Let's go hang out by the sea.",cat:"nature",lv:"Elementary"},
+{zh:"天",jp:"tin1",en:"sky",ex:"今日個天好藍。",exj:"gam1 jat6 go3 tin1 hou2 laam4",exen:"The sky is really blue today.",cat:"nature",lv:"Beginner"},
+{zh:"太陽",jp:"taai3 joeng4",en:"sun",ex:"今日太陽好猛。",exj:"gam1 jat6 taai3 joeng4 hou2 maang5",exen:"The sun is strong today.",cat:"nature",lv:"Elementary"},
+{zh:"月光",jp:"jyut6 gwong1",en:"moon / moonlight",ex:"今晚嘅月光好圓。",exj:"gam1 maan5 ge3 jyut6 gwong1 hou2 jyun4",exen:"The moon is full tonight.",cat:"nature",lv:"Elementary"},
+{zh:"石頭",jp:"sek6 tau4",en:"stone / rock",ex:"小心呀，前面好多石頭。",exj:"siu2 sam1 aa3, cin4 min6 hou2 do1 sek6 tau4",exen:"Careful, there are lots of rocks ahead.",cat:"nature",lv:"Elementary"},
+{zh:"火",jp:"fo2",en:"fire",ex:"唔好玩火！",exj:"m4 hou2 waan2 fo2",exen:"Don't play with fire!",cat:"nature",lv:"Beginner"},
+{zh:"雪",jp:"syut3",en:"snow",ex:"香港好少落雪。",exj:"hoeng1 gong2 hou2 siu2 lok6 syut3",exen:"It rarely snows in Hong Kong.",cat:"weather",lv:"Beginner"},
+{zh:"雨",jp:"jyu5",en:"rain",ex:"出面落緊雨。",exj:"ceot1 min6 lok6 gan2 jyu5",exen:"It's raining outside.",cat:"weather",lv:"Beginner"},
+{zh:"風",jp:"fung1",en:"wind",ex:"今日風好大。",exj:"gam1 jat6 fung1 hou2 daai6",exen:"It's very windy today.",cat:"weather",lv:"Beginner"},
+{zh:"雲",jp:"wan4",en:"cloud",ex:"天上面有好多雲。",exj:"tin1 soeng6 min6 jau5 hou2 do1 wan4",exen:"There are lots of clouds in the sky.",cat:"weather",lv:"Elementary"},
+{zh:"熱",jp:"jit6",en:"hot",ex:"夏天好熱。",exj:"haa6 tin1 hou2 jit6",exen:"Summer is really hot.",cat:"weather",lv:"Beginner"},
+{zh:"凍",jp:"dung3",en:"cold",ex:"今日凍唔凍呀？",exj:"gam1 jat6 dung3 m4 dung3 aa3",exen:"Is it cold today?",cat:"weather",lv:"Beginner"},
+{zh:"天氣",jp:"tin1 hei3",en:"weather",ex:"今日天氣好好。",exj:"gam1 jat6 tin1 hei3 hou2 hou2",exen:"The weather is great today.",cat:"weather",lv:"Elementary"},
+{zh:"馬",jp:"maa5",en:"horse",ex:"佢識騎馬。",exj:"keoi5 sik1 ke4 maa5",exen:"He knows how to ride a horse.",cat:"animals",lv:"Beginner"},
+{zh:"狗",jp:"gau2",en:"dog",ex:"我屋企有隻狗。",exj:"ngo5 uk1 kei2 jau5 zek3 gau2",exen:"I have a dog at home.",cat:"animals",lv:"Beginner"},
+{zh:"貓",jp:"maau1",en:"cat",ex:"隻貓瞓緊覺。",exj:"zek3 maau1 fan3 gan2 gaau3",exen:"The cat is sleeping.",cat:"animals",lv:"Beginner"},
+{zh:"魚",jp:"jyu2",en:"fish",ex:"我最鍾意食魚。",exj:"ngo5 zeoi3 zung1 ji3 sik6 jyu2",exen:"Fish is my favourite thing to eat.",cat:"animals",lv:"Beginner"},
+{zh:"雀仔",jp:"zoek3 zai2",en:"bird",ex:"啲雀仔喺樹上面唱歌。",exj:"di1 zoek3 zai2 hai2 syu6 soeng6 min6 coeng3 go1",exen:"The birds are singing in the tree.",cat:"animals",lv:"Beginner"},
+{zh:"豬",jp:"zyu1",en:"pig",ex:"豬其實好聰明㗎。",exj:"zyu1 kei4 sat6 hou2 cung1 ming4 gaa3",exen:"Pigs are actually really smart.",cat:"animals",lv:"Beginner"},
+{zh:"牛",jp:"ngau4",en:"cow",ex:"農場有好多牛。",exj:"nung4 coeng4 jau5 hou2 do1 ngau4",exen:"The farm has lots of cows.",cat:"animals",lv:"Beginner"},
+{zh:"雞",jp:"gai1",en:"chicken",ex:"我哋今晚食雞。",exj:"ngo5 dei6 gam1 maan5 sik6 gai1",exen:"We're having chicken tonight.",cat:"animals",lv:"Beginner"},
+{zh:"食",jp:"sik6",en:"to eat",ex:"你食咗飯未呀？",exj:"nei5 sik6 zo2 faan6 mei6 aa3",exen:"Have you eaten yet?",cat:"verbs",lv:"Beginner"},
+{zh:"飲",jp:"jam2",en:"to drink",ex:"飲多啲水啦。",exj:"jam2 do1 di1 seoi2 laa1",exen:"Drink more water.",cat:"verbs",lv:"Beginner"},
+{zh:"去",jp:"heoi3",en:"to go",ex:"我聽日去香港。",exj:"ngo5 ting1 jat6 heoi3 hoeng1 gong2",exen:"I'm going to Hong Kong tomorrow.",cat:"verbs",lv:"Beginner"},
+{zh:"想",jp:"soeng2",en:"to want (to do sth)",ex:"我想食點心。",exj:"ngo5 soeng2 sik6 dim2 sam1",exen:"I want to eat dim sum.",cat:"verbs",lv:"Beginner"},
+{zh:"要",jp:"jiu3",en:"to want / need",ex:"我要一杯奶茶。",exj:"ngo5 jiu3 jat1 bui1 naai5 caa4",exen:"I'd like one milk tea.",cat:"verbs",lv:"Beginner"},
+{zh:"有",jp:"jau5",en:"to have",ex:"你有冇時間呀？",exj:"nei5 jau5 mou5 si4 gaan3 aa3",exen:"Do you have time?",cat:"verbs",lv:"Beginner"},
+{zh:"知",jp:"zi1",en:"to know (a fact)",ex:"我唔知佢喺邊度。",exj:"ngo5 m4 zi1 keoi5 hai2 bin1 dou6",exen:"I don't know where he is.",cat:"verbs",lv:"Beginner"},
+{zh:"識",jp:"sik1",en:"to know (how / someone)",ex:"你識唔識講廣東話呀？",exj:"nei5 sik1 m4 sik1 gong2 gwong2 dung1 waa2 aa3",exen:"Do you know how to speak Cantonese?",cat:"verbs",lv:"Beginner"},
+{zh:"睇",jp:"tai2",en:"to see / look / watch",ex:"我今晚想睇戲。",exj:"ngo5 gam1 maan5 soeng2 tai2 hei3",exen:"I want to watch a movie tonight.",cat:"verbs",lv:"Beginner"},
+{zh:"聽",jp:"teng1",en:"to listen / hear",ex:"我鍾意聽音樂。",exj:"ngo5 zung1 ji3 teng1 jam1 ngok6",exen:"I like listening to music.",cat:"verbs",lv:"Beginner"},
+{zh:"講",jp:"gong2",en:"to speak / say",ex:"唔該講慢啲。",exj:"m4 goi1 gong2 maan6 di1",exen:"Please speak more slowly.",cat:"verbs",lv:"Beginner"},
+{zh:"唱歌",jp:"coeng3 go1",en:"to sing",ex:"佢唱歌好好聽。",exj:"keoi5 coeng3 go1 hou2 hou2 teng1",exen:"She sings beautifully.",cat:"verbs",lv:"Beginner"},
+{zh:"跑步",jp:"paau2 bou6",en:"to run / jog",ex:"我朝朝都去跑步。",exj:"ngo5 ziu1 ziu1 dou1 heoi3 paau2 bou6",exen:"I go running every morning.",cat:"verbs",lv:"Beginner"},
+{zh:"行路",jp:"haang4 lou6",en:"to walk",ex:"我哋行路去啦，好近咋。",exj:"ngo5 dei6 haang4 lou6 heoi3 laa1, hou2 kan5 zaa3",exen:"Let's walk there — it's really close.",cat:"verbs",lv:"Beginner"},
+{zh:"買",jp:"maai5",en:"to buy",ex:"我想買啲生果。",exj:"ngo5 soeng2 maai5 di1 saang1 gwo2",exen:"I want to buy some fruit.",cat:"verbs",lv:"Beginner"},
+{zh:"賣",jp:"maai6",en:"to sell",ex:"呢度有冇得賣八達通呀？",exj:"ni1 dou6 jau5 mou5 dak1 maai6 baat3 daat6 tung1 aa3",exen:"Do they sell Octopus cards here?",cat:"verbs",lv:"Elementary"},
+{zh:"瞓覺",jp:"fan3 gaau3",en:"to sleep",ex:"我噚晚好夜先瞓覺。",exj:"ngo5 cam4 maan5 hou2 je6 sin1 fan3 gaau3",exen:"I went to sleep really late last night.",cat:"verbs",lv:"Beginner"},
+{zh:"玩",jp:"waan2",en:"to play",ex:"啲細路喺公園玩緊。",exj:"di1 sai3 lou6 hai2 gung1 jyun2 waan2 gan2",exen:"The kids are playing in the park.",cat:"verbs",lv:"Beginner"},
+{zh:"鍾意",jp:"zung1 ji3",en:"to like",ex:"我好鍾意香港。",exj:"ngo5 hou2 zung1 ji3 hoeng1 gong2",exen:"I really like Hong Kong.",cat:"verbs",lv:"Beginner"},
+{zh:"愛",jp:"oi3",en:"to love",ex:"我愛你。",exj:"ngo5 oi3 nei5",exen:"I love you.",cat:"verbs",lv:"Beginner"},
+{zh:"嚟",jp:"lai4",en:"to come",ex:"你幾點嚟呀？",exj:"nei5 gei2 dim2 lai4 aa3",exen:"What time are you coming?",cat:"verbs",lv:"Beginner"},
+{zh:"返屋企",jp:"faan1 uk1 kei2",en:"to go home",ex:"我好攰，想返屋企。",exj:"ngo5 hou2 gui6, soeng2 faan1 uk1 kei2",exen:"I'm tired — I want to go home.",cat:"verbs",lv:"Elementary"},
+{zh:"做",jp:"zou6",en:"to do / make",ex:"你做緊乜嘢呀？",exj:"nei5 zou6 gan2 mat1 je5 aa3",exen:"What are you doing?",cat:"verbs",lv:"Beginner"},
+{zh:"畀",jp:"bei2",en:"to give",ex:"唔該畀個餐牌我。",exj:"m4 goi1 bei2 go3 caan1 paai2 ngo5",exen:"Please give me the menu.",cat:"verbs",lv:"Elementary"},
+{zh:"搵",jp:"wan2",en:"to look for / find",ex:"我搵緊我部電話。",exj:"ngo5 wan2 gan2 ngo5 bou6 din6 waa2",exen:"I'm looking for my phone.",cat:"verbs",lv:"Elementary"},
+{zh:"幫",jp:"bong1",en:"to help",ex:"你可唔可以幫我呀？",exj:"nei5 ho2 m4 ho2 ji5 bong1 ngo5 aa3",exen:"Can you help me?",cat:"verbs",lv:"Elementary"},
+{zh:"學",jp:"hok6",en:"to learn / study",ex:"我學緊廣東話。",exj:"ngo5 hok6 gan2 gwong2 dung1 waa2",exen:"I'm learning Cantonese.",cat:"verbs",lv:"Beginner"},
+{zh:"教",jp:"gaau3",en:"to teach",ex:"你可唔可以教我呀？",exj:"nei5 ho2 m4 ho2 ji5 gaau3 ngo5 aa3",exen:"Can you teach me?",cat:"verbs",lv:"Elementary"},
+{zh:"坐",jp:"co5",en:"to sit",ex:"隨便坐啦。",exj:"ceoi4 bin2 co5 laa1",exen:"Sit anywhere you like.",cat:"verbs",lv:"Elementary"},
+{zh:"企",jp:"kei5",en:"to stand",ex:"唔好企喺度阻住人。",exj:"m4 hou2 kei5 hai2 dou6 zo2 zyu6 jan4",exen:"Don't stand there blocking people.",cat:"verbs",lv:"Intermediate"},
+{zh:"游水",jp:"jau4 seoi2",en:"to swim",ex:"夏天我成日去游水。",exj:"haa6 tin1 ngo5 sing4 jat6 heoi3 jau4 seoi2",exen:"In summer I go swimming all the time.",cat:"verbs",lv:"Elementary"},
+{zh:"揸車",jp:"zaa1 ce1",en:"to drive",ex:"佢識揸車。",exj:"keoi5 sik1 zaa1 ce1",exen:"He knows how to drive.",cat:"verbs",lv:"Intermediate"},
+{zh:"我",jp:"ngo5",en:"I / me",ex:"我係美國人。",exj:"ngo5 hai6 mei5 gwok3 jan4",exen:"I'm American.",cat:"people",lv:"Beginner"},
+{zh:"你",jp:"nei5",en:"you",ex:"你叫咩名呀？",exj:"nei5 giu3 me1 meng2 aa3",exen:"What's your name?",cat:"people",lv:"Beginner"},
+{zh:"佢",jp:"keoi5",en:"he / she / it",ex:"佢係我朋友。",exj:"keoi5 hai6 ngo5 pang4 jau5",exen:"He's my friend.",cat:"people",lv:"Beginner"},
+{zh:"我哋",jp:"ngo5 dei6",en:"we / us",ex:"我哋一齊去啦。",exj:"ngo5 dei6 jat1 cai4 heoi3 laa1",exen:"Let's go together.",cat:"people",lv:"Beginner"},
+{zh:"你哋",jp:"nei5 dei6",en:"you (plural)",ex:"你哋想食乜嘢呀？",exj:"nei5 dei6 soeng2 sik6 mat1 je5 aa3",exen:"What do you all want to eat?",cat:"people",lv:"Beginner"},
+{zh:"佢哋",jp:"keoi5 dei6",en:"they / them",ex:"佢哋喺出面等緊。",exj:"keoi5 dei6 hai2 ceot1 min6 dang2 gan2",exen:"They're waiting outside.",cat:"people",lv:"Beginner"},
+{zh:"人",jp:"jan4",en:"person / people",ex:"今日好多人。",exj:"gam1 jat6 hou2 do1 jan4",exen:"There are so many people today.",cat:"people",lv:"Beginner"},
+{zh:"朋友",jp:"pang4 jau5",en:"friend",ex:"我同朋友去食飯。",exj:"ngo5 tung4 pang4 jau5 heoi3 sik6 faan6",exen:"I'm going out to eat with friends.",cat:"people",lv:"Beginner"},
+{zh:"媽媽",jp:"maa4 maa1",en:"mum / mom",ex:"我媽媽好錫我。",exj:"ngo5 maa4 maa1 hou2 sek3 ngo5",exen:"My mum loves me dearly.",cat:"people",lv:"Beginner"},
+{zh:"爸爸",jp:"baa4 baa1",en:"dad",ex:"我爸爸鍾意飲茶。",exj:"ngo5 baa4 baa1 zung1 ji3 jam2 caa4",exen:"My dad loves going for dim sum.",cat:"people",lv:"Beginner"},
+{zh:"哥哥",jp:"go4 go1",en:"older brother",ex:"我哥哥高過我。",exj:"ngo5 go4 go1 gou1 gwo3 ngo5",exen:"My older brother is taller than me.",cat:"people",lv:"Beginner"},
+{zh:"家姐",jp:"gaa1 ze1",en:"older sister",ex:"我家姐住喺香港。",exj:"ngo5 gaa1 ze1 zyu6 hai2 hoeng1 gong2",exen:"My older sister lives in Hong Kong.",cat:"people",lv:"Beginner"},
+{zh:"細佬",jp:"sai3 lou2",en:"younger brother",ex:"我細佬今年十歲。",exj:"ngo5 sai3 lou2 gam1 nin2 sap6 seoi3",exen:"My little brother turns ten this year.",cat:"people",lv:"Beginner"},
+{zh:"細妹",jp:"sai3 mui2",en:"younger sister",ex:"我細妹好鍾意貓。",exj:"ngo5 sai3 mui2 hou2 zung1 ji3 maau1",exen:"My little sister loves cats.",cat:"people",lv:"Beginner"},
+{zh:"老師",jp:"lou5 si1",en:"teacher",ex:"我哋老師好好人。",exj:"ngo5 dei6 lou5 si1 hou2 hou2 jan4",exen:"Our teacher is really nice.",cat:"people",lv:"Beginner"},
+{zh:"學生",jp:"hok6 saang1",en:"student",ex:"佢係大學生。",exj:"keoi5 hai6 daai6 hok6 saang1",exen:"She's a university student.",cat:"people",lv:"Elementary"},
+{zh:"細路",jp:"sai3 lou6",en:"kid / child",ex:"啲細路好得意。",exj:"di1 sai3 lou6 hou2 dak1 ji3",exen:"The kids are adorable.",cat:"people",lv:"Elementary"},
+{zh:"乜嘢",jp:"mat1 je5",en:"what",ex:"呢個係乜嘢嚟㗎？",exj:"ni1 go3 hai6 mat1 je5 lai4 gaa3",exen:"What is this?",cat:"questions",lv:"Beginner"},
+{zh:"邊度",jp:"bin1 dou6",en:"where",ex:"廁所喺邊度呀？",exj:"ci3 so2 hai2 bin1 dou6 aa3",exen:"Where is the bathroom?",cat:"questions",lv:"Beginner"},
+{zh:"邊個",jp:"bin1 go3",en:"who / which one",ex:"邊個打嚟呀？",exj:"bin1 go3 daa2 lai4 aa3",exen:"Who's calling?",cat:"questions",lv:"Beginner"},
+{zh:"點樣",jp:"dim2 joeng2",en:"how",ex:"呢個字點樣讀呀？",exj:"ni1 go3 zi6 dim2 joeng2 duk6 aa3",exen:"How do you pronounce this character?",cat:"questions",lv:"Beginner"},
+{zh:"點解",jp:"dim2 gaai2",en:"why",ex:"點解你唔嚟呀？",exj:"dim2 gaai2 nei5 m4 lai4 aa3",exen:"Why aren't you coming?",cat:"questions",lv:"Beginner"},
+{zh:"幾時",jp:"gei2 si4",en:"when",ex:"你幾時返香港呀？",exj:"nei5 gei2 si4 faan1 hoeng1 gong2 aa3",exen:"When are you going back to Hong Kong?",cat:"questions",lv:"Beginner"},
+{zh:"幾多",jp:"gei2 do1",en:"how many / how much",ex:"呢個幾多錢呀？",exj:"ni1 go3 gei2 do1 cin2 aa3",exen:"How much is this?",cat:"questions",lv:"Beginner"},
+{zh:"電話",jp:"din6 waa2",en:"telephone / phone",ex:"我部電話冇電喇。",exj:"ngo5 bou6 din6 waa2 mou5 din6 laa3",exen:"My phone is out of battery.",cat:"objects",lv:"Beginner"},
+{zh:"錢",jp:"cin2",en:"money",ex:"我唔夠錢。",exj:"ngo5 m4 gau3 cin2",exen:"I don't have enough money.",cat:"objects",lv:"Beginner"},
+{zh:"時間",jp:"si4 gaan3",en:"time",ex:"我今日冇時間。",exj:"ngo5 gam1 jat6 mou5 si4 gaan3",exen:"I don't have time today.",cat:"objects",lv:"Beginner"},
+{zh:"波",jp:"bo1",en:"ball",ex:"我哋去踢波啦。",exj:"ngo5 dei6 heoi3 tek3 bo1 laa1",exen:"Let's go play football.",cat:"objects",lv:"Beginner"},
+{zh:"書",jp:"syu1",en:"book",ex:"我鍾意睇書。",exj:"ngo5 zung1 ji3 tai2 syu1",exen:"I like reading books.",cat:"objects",lv:"Beginner"},
+{zh:"車",jp:"ce1",en:"car",ex:"架車喺出面。",exj:"gaa3 ce1 hai2 ceot1 min6",exen:"The car is outside.",cat:"objects",lv:"Beginner"},
+{zh:"檯",jp:"toi2",en:"table",ex:"本書喺檯上面。",exj:"bun2 syu1 hai2 toi2 soeng6 min6",exen:"The book is on the table.",cat:"objects",lv:"Elementary"},
+{zh:"櫈",jp:"dang3",en:"chair / stool",ex:"攞張櫈嚟坐啦。",exj:"lo2 zoeng1 dang3 lai4 co5 laa1",exen:"Grab a chair and sit down.",cat:"objects",lv:"Elementary"},
+{zh:"衫",jp:"saam1",en:"clothes / shirt",ex:"我想買件新衫。",exj:"ngo5 soeng2 maai5 gin6 san1 saam1",exen:"I want to buy a new shirt.",cat:"objects",lv:"Beginner"},
+{zh:"鞋",jp:"haai4",en:"shoes",ex:"對鞋好舒服。",exj:"deoi3 haai4 hou2 syu1 fuk6",exen:"These shoes are really comfortable.",cat:"objects",lv:"Beginner"},
+{zh:"袋",jp:"doi2",en:"bag",ex:"我個袋好重。",exj:"ngo5 go3 doi2 hou2 cung5",exen:"My bag is really heavy.",cat:"objects",lv:"Elementary"},
+{zh:"鎖匙",jp:"so2 si4",en:"key",ex:"我唔見咗鎖匙。",exj:"ngo5 m4 gin3 zo2 so2 si4",exen:"I've lost my keys.",cat:"objects",lv:"Elementary"},
+{zh:"杯",jp:"bui1",en:"cup / glass",ex:"唔該畀杯水我。",exj:"m4 goi1 bei2 bui1 seoi2 ngo5",exen:"A glass of water, please.",cat:"objects",lv:"Beginner"},
+{zh:"銀包",jp:"ngan4 baau1",en:"wallet",ex:"我個銀包留咗喺屋企。",exj:"ngo5 go3 ngan4 baau1 lau4 zo2 hai2 uk1 kei2",exen:"I left my wallet at home.",cat:"objects",lv:"Elementary"},
+{zh:"遮",jp:"ze1",en:"umbrella",ex:"記得帶遮呀。",exj:"gei3 dak1 daai3 ze1 aa3",exen:"Remember to bring an umbrella.",cat:"objects",lv:"Elementary"},
+{zh:"電腦",jp:"din6 nou5",en:"computer",ex:"我用電腦做嘢。",exj:"ngo5 jung6 din6 nou5 zou6 je5",exen:"I work on a computer.",cat:"objects",lv:"Elementary"},
+{zh:"飯",jp:"faan6",en:"rice (cooked) / meal",ex:"食飯喇！",exj:"sik6 faan6 laa3",exen:"Dinner time!",cat:"food",lv:"Beginner"},
+{zh:"米",jp:"mai5",en:"rice (uncooked)",ex:"屋企冇米喇。",exj:"uk1 kei2 mou5 mai5 laa3",exen:"We're out of rice at home.",cat:"food",lv:"Beginner"},
+{zh:"麵",jp:"min6",en:"noodles",ex:"我想食碗麵。",exj:"ngo5 soeng2 sik6 wun2 min6",exen:"I want a bowl of noodles.",cat:"food",lv:"Beginner"},
+{zh:"茶",jp:"caa4",en:"tea",ex:"飲杯茶先。",exj:"jam2 bui1 caa4 sin1",exen:"Have a cup of tea first.",cat:"food",lv:"Beginner"},
+{zh:"咖啡",jp:"gaa3 fe1",en:"coffee",ex:"我朝朝都要飲咖啡。",exj:"ngo5 ziu1 ziu1 dou1 jiu3 jam2 gaa3 fe1",exen:"I need coffee every morning.",cat:"food",lv:"Beginner"},
+{zh:"奶茶",jp:"naai5 caa4",en:"milk tea",ex:"港式奶茶好出名。",exj:"gong2 sik1 naai5 caa4 hou2 ceot1 meng2",exen:"Hong Kong-style milk tea is famous.",cat:"food",lv:"Beginner"},
+{zh:"點心",jp:"dim2 sam1",en:"dim sum",ex:"我哋星期日去食點心。",exj:"ngo5 dei6 sing1 kei4 jat6 heoi3 sik6 dim2 sam1",exen:"We're going for dim sum on Sunday.",cat:"food",lv:"Beginner"},
+{zh:"生果",jp:"saang1 gwo2",en:"fruit",ex:"食多啲生果健康啲。",exj:"sik6 do1 di1 saang1 gwo2 gin6 hong1 di1",exen:"Eating more fruit is healthier.",cat:"food",lv:"Beginner"},
+{zh:"蘋果",jp:"ping4 gwo2",en:"apple",ex:"呢啲蘋果好甜。",exj:"ni1 di1 ping4 gwo2 hou2 tim4",exen:"These apples are really sweet.",cat:"food",lv:"Beginner"},
+{zh:"菜",jp:"coi3",en:"vegetables",ex:"唔該加多碟菜。",exj:"m4 goi1 gaa1 do1 dip6 coi3",exen:"One more plate of veggies, please.",cat:"food",lv:"Beginner"},
+{zh:"肉",jp:"juk6",en:"meat",ex:"我唔食肉。",exj:"ngo5 m4 sik6 juk6",exen:"I don't eat meat.",cat:"food",lv:"Beginner"},
+{zh:"蛋",jp:"daan2",en:"egg",ex:"我要兩隻蛋。",exj:"ngo5 jiu3 loeng5 zek3 daan2",exen:"I'd like two eggs.",cat:"food",lv:"Beginner"},
+{zh:"包",jp:"baau1",en:"bun / bread",ex:"叉燒包好好食。",exj:"caa1 siu1 baau1 hou2 hou2 sik6",exen:"BBQ pork buns are delicious.",cat:"food",lv:"Beginner"},
+{zh:"糖",jp:"tong4",en:"sugar / candy",ex:"唔要糖，唔該。",exj:"m4 jiu3 tong4, m4 goi1",exen:"No sugar, please.",cat:"food",lv:"Elementary"},
+{zh:"今日",jp:"gam1 jat6",en:"today",ex:"今日星期幾呀？",exj:"gam1 jat6 sing1 kei4 gei2 aa3",exen:"What day is it today?",cat:"time",lv:"Beginner"},
+{zh:"聽日",jp:"ting1 jat6",en:"tomorrow",ex:"聽日見！",exj:"ting1 jat6 gin3",exen:"See you tomorrow!",cat:"time",lv:"Beginner"},
+{zh:"尋日",jp:"cam4 jat6",en:"yesterday",ex:"我尋日好忙。",exj:"ngo5 cam4 jat6 hou2 mong4",exen:"I was really busy yesterday.",cat:"time",lv:"Beginner"},
+{zh:"而家",jp:"ji4 gaa1",en:"now",ex:"而家幾點呀？",exj:"ji4 gaa1 gei2 dim2 aa3",exen:"What time is it now?",cat:"time",lv:"Beginner"},
+{zh:"朝早",jp:"ziu1 zou2",en:"morning",ex:"我朝早七點起身。",exj:"ngo5 ziu1 zou2 cat1 dim2 hei2 san1",exen:"I get up at seven in the morning.",cat:"time",lv:"Beginner"},
+{zh:"夜晚",jp:"je6 maan5",en:"night / evening",ex:"夜晚唔好食咁多嘢。",exj:"je6 maan5 m4 hou2 sik6 gam3 do1 je5",exen:"Don't eat so much at night.",cat:"time",lv:"Elementary"},
+{zh:"星期",jp:"sing1 kei4",en:"week",ex:"下個星期我放假。",exj:"haa6 go3 sing1 kei4 ngo5 fong3 gaa3",exen:"I'm on holiday next week.",cat:"time",lv:"Elementary"},
+{zh:"鐘頭",jp:"zung1 tau4",en:"hour",ex:"我等咗成個鐘頭。",exj:"ngo5 dang2 zo2 sing4 go3 zung1 tau4",exen:"I waited a whole hour.",cat:"time",lv:"Elementary"},
+{zh:"分鐘",jp:"fan1 zung1",en:"minute",ex:"仲有五分鐘就開場。",exj:"zung6 jau5 ng5 fan1 zung1 zau6 hoi1 coeng4",exen:"Five more minutes until it starts.",cat:"time",lv:"Elementary"},
+{zh:"年",jp:"nin4",en:"year",ex:"我學咗一年廣東話。",exj:"ngo5 hok6 zo2 jat1 nin4 gwong2 dung1 waa2",exen:"I've studied Cantonese for a year.",cat:"time",lv:"Elementary"},
+{zh:"一",jp:"jat1",en:"one",ex:"我要一杯凍檸茶。",exj:"ngo5 jiu3 jat1 bui1 dung3 ning2 caa4",exen:"I'd like one iced lemon tea.",cat:"numbers",lv:"Beginner"},
+{zh:"二",jp:"ji6",en:"two (counting)",ex:"一、二、三，笑！",exj:"jat1, ji6, saam1, siu3",exen:"One, two, three — smile!",cat:"numbers",lv:"Beginner"},
+{zh:"兩",jp:"loeng5",en:"two (of something)",ex:"我有兩隻貓。",exj:"ngo5 jau5 loeng5 zek3 maau1",exen:"I have two cats.",cat:"numbers",lv:"Beginner"},
+{zh:"三",jp:"saam1",en:"three",ex:"我哋三個人。",exj:"ngo5 dei6 saam1 go3 jan4",exen:"There are three of us.",cat:"numbers",lv:"Beginner"},
+{zh:"四",jp:"sei3",en:"four",ex:"四點見面啦。",exj:"sei3 dim2 gin3 min6 laa1",exen:"Let's meet at four.",cat:"numbers",lv:"Beginner"},
+{zh:"五",jp:"ng5",en:"five",ex:"五蚊咋。",exj:"ng5 man1 zaa3",exen:"It's only five dollars.",cat:"numbers",lv:"Beginner"},
+{zh:"六",jp:"luk6",en:"six",ex:"我六點收工。",exj:"ngo5 luk6 dim2 sau1 gung1",exen:"I get off work at six.",cat:"numbers",lv:"Beginner"},
+{zh:"七",jp:"cat1",en:"seven",ex:"七月好熱。",exj:"cat1 jyut6 hou2 jit6",exen:"July is really hot.",cat:"numbers",lv:"Beginner"},
+{zh:"八",jp:"baat3",en:"eight",ex:"八號風球嚟緊。",exj:"baat3 hou6 fung1 kau4 lai4 gan2",exen:"A typhoon signal 8 is coming.",cat:"numbers",lv:"Beginner"},
+{zh:"九",jp:"gau2",en:"nine",ex:"我朝早九點返工。",exj:"ngo5 ziu1 zou2 gau2 dim2 faan1 gung1",exen:"I start work at nine in the morning.",cat:"numbers",lv:"Beginner"},
+{zh:"十",jp:"sap6",en:"ten",ex:"畀十蚊佢。",exj:"bei2 sap6 man1 keoi5",exen:"Give him ten dollars.",cat:"numbers",lv:"Beginner"},
+{zh:"百",jp:"baak3",en:"hundred",ex:"一百蚊夠唔夠呀？",exj:"jat1 baak3 man1 gau3 m4 gau3 aa3",exen:"Is a hundred dollars enough?",cat:"numbers",lv:"Elementary"},
+{zh:"千",jp:"cin1",en:"thousand",ex:"呢部手機成千幾蚊。",exj:"ni1 bou6 sau2 gei1 sing4 cin1 gei2 man1",exen:"This phone costs over a thousand dollars.",cat:"numbers",lv:"Elementary"},
+{zh:"萬",jp:"maan6",en:"ten thousand",ex:"香港有七百幾萬人。",exj:"hoeng1 gong2 jau5 cat1 baak3 gei2 maan6 jan4",exen:"Hong Kong has over seven million people.",cat:"numbers",lv:"Elementary"},
+{zh:"屋企",jp:"uk1 kei2",en:"home",ex:"我而家喺屋企。",exj:"ngo5 ji4 gaa1 hai2 uk1 kei2",exen:"I'm at home right now.",cat:"places",lv:"Beginner"},
+{zh:"學校",jp:"hok6 haau6",en:"school",ex:"學校九點開門。",exj:"hok6 haau6 gau2 dim2 hoi1 mun4",exen:"School opens at nine.",cat:"places",lv:"Beginner"},
+{zh:"香港",jp:"hoeng1 gong2",en:"Hong Kong",ex:"我好想去香港。",exj:"ngo5 hou2 soeng2 heoi3 hoeng1 gong2",exen:"I really want to go to Hong Kong.",cat:"places",lv:"Beginner"},
+{zh:"餐廳",jp:"caan1 teng1",en:"restaurant",ex:"呢間餐廳好好食。",exj:"ni1 gaan1 caan1 teng1 hou2 hou2 sik6",exen:"This restaurant is really good.",cat:"places",lv:"Beginner"},
+{zh:"廁所",jp:"ci3 so2",en:"bathroom / toilet",ex:"唔該，廁所喺邊呀？",exj:"m4 goi1, ci3 so2 hai2 bin1 aa3",exen:"Excuse me, where's the bathroom?",cat:"places",lv:"Beginner"},
+{zh:"醫院",jp:"ji1 jyun2",en:"hospital",ex:"醫院喺前面。",exj:"ji1 jyun2 hai2 cin4 min6",exen:"The hospital is up ahead.",cat:"places",lv:"Elementary"},
+{zh:"舖頭",jp:"pou3 tau2",en:"shop / store",ex:"間舖頭十點開。",exj:"gaan1 pou3 tau2 sap6 dim2 hoi1",exen:"The shop opens at ten.",cat:"places",lv:"Elementary"},
+{zh:"街",jp:"gaai1",en:"street",ex:"我哋出街食飯啦。",exj:"ngo5 dei6 ceot1 gaai1 sik6 faan6 laa1",exen:"Let's go out to eat.",cat:"places",lv:"Beginner"},
+{zh:"公園",jp:"gung1 jyun2",en:"park",ex:"公園好多人跑步。",exj:"gung1 jyun2 hou2 do1 jan4 paau2 bou6",exen:"Lots of people jog in the park.",cat:"places",lv:"Beginner"},
+{zh:"地鐵站",jp:"dei6 tit3 zaam6",en:"MTR / metro station",ex:"地鐵站喺邊度呀？",exj:"dei6 tit3 zaam6 hai2 bin1 dou6 aa3",exen:"Where's the MTR station?",cat:"places",lv:"Elementary"},
+{zh:"機場",jp:"gei1 coeng4",en:"airport",ex:"我聽朝去機場。",exj:"ngo5 ting1 ziu1 heoi3 gei1 coeng4",exen:"I'm going to the airport tomorrow morning.",cat:"places",lv:"Elementary"},
+{zh:"你好",jp:"nei5 hou2",en:"hello",ex:"你好！好開心認識你。",exj:"nei5 hou2! hou2 hoi1 sam1 jing6 sik1 nei5",exen:"Hello! Great to meet you.",cat:"greetings",lv:"Beginner"},
+{zh:"早晨",jp:"zou2 san4",en:"good morning",ex:"早晨！食咗早餐未呀？",exj:"zou2 san4! sik6 zo2 zou2 caan1 mei6 aa3",exen:"Morning! Had breakfast yet?",cat:"greetings",lv:"Beginner"},
+{zh:"早唞",jp:"zou2 tau2",en:"good night",ex:"好夜喇，早唞啦。",exj:"hou2 je6 laa3, zou2 tau2 laa1",exen:"It's late — good night.",cat:"greetings",lv:"Beginner"},
+{zh:"唔該",jp:"m4 goi1",en:"thank you (favour) / excuse me",ex:"唔該晒你幫我。",exj:"m4 goi1 saai3 nei5 bong1 ngo5",exen:"Thanks so much for helping me.",cat:"greetings",lv:"Beginner"},
+{zh:"多謝",jp:"do1 ze6",en:"thank you (gift)",ex:"多謝你份禮物！",exj:"do1 ze6 nei5 fan6 lai5 mat6",exen:"Thank you for the gift!",cat:"greetings",lv:"Beginner"},
+{zh:"對唔住",jp:"deoi3 m4 zyu6",en:"sorry",ex:"對唔住，我遲到咗。",exj:"deoi3 m4 zyu6, ngo5 ci4 dou3 zo2",exen:"Sorry, I'm late.",cat:"greetings",lv:"Beginner"},
+{zh:"拜拜",jp:"baai1 baai3",en:"bye",ex:"我走先喇，拜拜！",exj:"ngo5 zau2 sin1 laa3, baai1 baai3",exen:"I'm off — bye!",cat:"greetings",lv:"Beginner"},
+{zh:"冇問題",jp:"mou5 man6 tai4",en:"no problem",ex:"冇問題，交畀我啦。",exj:"mou5 man6 tai4, gaau1 bei2 ngo5 laa1",exen:"No problem, leave it to me.",cat:"greetings",lv:"Elementary"},
+{zh:"唔使客氣",jp:"m4 sai2 haak3 hei3",en:"you're welcome",ex:"唔使客氣，小事咋。",exj:"m4 sai2 haak3 hei3, siu2 si6 zaa3",exen:"You're welcome — it was nothing.",cat:"greetings",lv:"Elementary"},
+{zh:"好",jp:"hou2",en:"good / very",ex:"呢度啲嘢食好好。",exj:"ni1 dou6 di1 je5 sik6 hou2 hou2",exen:"The food here is really good.",cat:"adjectives",lv:"Beginner"},
+{zh:"大",jp:"daai6",en:"big",ex:"間屋好大。",exj:"gaan1 uk1 hou2 daai6",exen:"The house is really big.",cat:"adjectives",lv:"Beginner"},
+{zh:"細",jp:"sai3",en:"small",ex:"呢件衫太細喇。",exj:"ni1 gin6 saam1 taai3 sai3 laa3",exen:"This shirt is too small.",cat:"adjectives",lv:"Beginner"},
+{zh:"靚",jp:"leng3",en:"pretty / nice",ex:"你今日著得好靚。",exj:"nei5 gam1 jat6 zoek3 dak1 hou2 leng3",exen:"You're dressed really nicely today.",cat:"adjectives",lv:"Beginner"},
+{zh:"快",jp:"faai3",en:"fast",ex:"架車行得好快。",exj:"gaa3 ce1 haang4 dak1 hou2 faai3",exen:"The car goes really fast.",cat:"adjectives",lv:"Beginner"},
+{zh:"慢",jp:"maan6",en:"slow",ex:"唔好行咁慢啦。",exj:"m4 hou2 haang4 gam3 maan6 laa1",exen:"Don't walk so slowly.",cat:"adjectives",lv:"Beginner"},
+{zh:"貴",jp:"gwai3",en:"expensive",ex:"太貴喇！",exj:"taai3 gwai3 laa3",exen:"Too expensive!",cat:"adjectives",lv:"Beginner"},
+{zh:"平",jp:"peng4",en:"cheap",ex:"呢度啲嘢好平。",exj:"ni1 dou6 di1 je5 hou2 peng4",exen:"Things here are really cheap.",cat:"adjectives",lv:"Beginner"},
+{zh:"開心",jp:"hoi1 sam1",en:"happy",ex:"我今日好開心。",exj:"ngo5 gam1 jat6 hou2 hoi1 sam1",exen:"I'm really happy today.",cat:"adjectives",lv:"Beginner"},
+{zh:"攰",jp:"gui6",en:"tired",ex:"我好攰，想瞓覺。",exj:"ngo5 hou2 gui6, soeng2 fan3 gaau3",exen:"I'm tired — I want to sleep.",cat:"adjectives",lv:"Beginner"},
+{zh:"肚餓",jp:"tou5 ngo6",en:"hungry",ex:"我好肚餓，食嘢先。",exj:"ngo5 hou2 tou5 ngo6, sik6 je5 sin1",exen:"I'm starving — let's eat first.",cat:"adjectives",lv:"Beginner"},
+{zh:"頸渴",jp:"geng2 hot3",en:"thirsty",ex:"我好頸渴，想飲水。",exj:"ngo5 hou2 geng2 hot3, soeng2 jam2 seoi2",exen:"I'm thirsty — I want some water.",cat:"adjectives",lv:"Elementary"},
+{zh:"忙",jp:"mong4",en:"busy",ex:"我呢排好忙。",exj:"ngo5 ni1 paai4 hou2 mong4",exen:"I've been really busy lately.",cat:"adjectives",lv:"Elementary"},
+{zh:"新",jp:"san1",en:"new",ex:"我買咗部新電話。",exj:"ngo5 maai5 zo2 bou6 san1 din6 waa2",exen:"I bought a new phone.",cat:"adjectives",lv:"Beginner"},
+{zh:"舊",jp:"gau6",en:"old (things)",ex:"呢架車好舊喇。",exj:"ni1 gaa3 ce1 hou2 gau6 laa3",exen:"This car is really old.",cat:"adjectives",lv:"Elementary"},
+{zh:"好食",jp:"hou2 sik6",en:"delicious",ex:"嘩，好好食呀！",exj:"waa3, hou2 hou2 sik6 aa3",exen:"Wow, this is delicious!",cat:"adjectives",lv:"Beginner"},
+{zh:"紅色",jp:"hung4 sik1",en:"red",ex:"我鍾意紅色。",exj:"ngo5 zung1 ji3 hung4 sik1",exen:"I like red.",cat:"colors",lv:"Elementary"},
+{zh:"藍色",jp:"laam4 sik1",en:"blue",ex:"個天係藍色嘅。",exj:"go3 tin1 hai6 laam4 sik1 ge3",exen:"The sky is blue.",cat:"colors",lv:"Elementary"},
+{zh:"綠色",jp:"luk6 sik1",en:"green",ex:"啲樹係綠色嘅。",exj:"di1 syu6 hai6 luk6 sik1 ge3",exen:"The trees are green.",cat:"colors",lv:"Elementary"},
+{zh:"黃色",jp:"wong4 sik1",en:"yellow",ex:"隻香蕉係黃色嘅。",exj:"zek3 hoeng1 ziu1 hai6 wong4 sik1 ge3",exen:"The banana is yellow.",cat:"colors",lv:"Elementary"},
+{zh:"白色",jp:"baak6 sik1",en:"white",ex:"我著咗件白色衫。",exj:"ngo5 zoek3 zo2 gin6 baak6 sik1 saam1",exen:"I'm wearing a white shirt.",cat:"colors",lv:"Elementary"},
+{zh:"黑色",jp:"hak1 sik1",en:"black",ex:"隻貓係黑色嘅。",exj:"zek3 maau1 hai6 hak1 sik1 ge3",exen:"The cat is black.",cat:"colors",lv:"Elementary"},
+{zh:"覺得",jp:"gok3 dak1",en:"to feel / think",ex:"我覺得呢個主意唔錯。",exj:"ngo5 gok3 dak1 ni1 go3 zyu2 ji3 m4 co3",exen:"I think this idea is pretty good.",cat:"mind",lv:"Intermediate"},
+{zh:"希望",jp:"hei1 mong6",en:"to hope",ex:"希望聽日好天啦。",exj:"hei1 mong6 ting1 jat6 hou2 tin1 laa1",exen:"Hopefully the weather's good tomorrow.",cat:"mind",lv:"Intermediate"},
+{zh:"記得",jp:"gei3 dak1",en:"to remember",ex:"記得帶鎖匙呀。",exj:"gei3 dak1 daai3 so2 si4 aa3",exen:"Remember to bring your keys.",cat:"mind",lv:"Intermediate"},
+{zh:"唔記得",jp:"m4 gei3 dak1",en:"to forget",ex:"我唔記得咗佢個名。",exj:"ngo5 m4 gei3 dak1 zo2 keoi5 go3 meng2",exen:"I forgot his name.",cat:"mind",lv:"Intermediate"},
+{zh:"明白",jp:"ming4 baak6",en:"to understand",ex:"你明唔明白呀？",exj:"nei5 ming4 m4 ming4 baak6 aa3",exen:"Do you understand?",cat:"mind",lv:"Intermediate"},
+{zh:"需要",jp:"seoi1 jiu3",en:"to need",ex:"你需唔需要幫手呀？",exj:"nei5 seoi1 m4 seoi1 jiu3 bong1 sau2 aa3",exen:"Do you need a hand?",cat:"mind",lv:"Intermediate"},
+{zh:"決定",jp:"kyut3 ding6",en:"to decide",ex:"我仲未決定去唔去。",exj:"ngo5 zung6 mei6 kyut3 ding6 heoi3 m4 heoi3",exen:"I haven't decided whether to go yet.",cat:"mind",lv:"Intermediate"},
+{zh:"開始",jp:"hoi1 ci2",en:"to start",ex:"電影八點開始。",exj:"din6 jing2 baat3 dim2 hoi1 ci2",exen:"The movie starts at eight.",cat:"mind",lv:"Intermediate"},
+{zh:"借",jp:"ze3",en:"to borrow / lend",ex:"可唔可以借支筆畀我呀？",exj:"ho2 m4 ho2 ji5 ze3 zi1 bat1 bei2 ngo5 aa3",exen:"Could you lend me a pen?",cat:"mind",lv:"Intermediate"},
+{zh:"試",jp:"si3",en:"to try",ex:"你試下先啦。",exj:"nei5 si3 haa5 sin1 laa1",exen:"Give it a try first.",cat:"mind",lv:"Intermediate"},
+{zh:"等",jp:"dang2",en:"to wait",ex:"等我一陣。",exj:"dang2 ngo5 jat1 zan6",exen:"Wait for me a moment.",cat:"mind",lv:"Intermediate"},
+{zh:"意思",jp:"ji3 si1",en:"meaning",ex:"呢個字係咩意思呀？",exj:"ni1 go3 zi6 hai6 me1 ji3 si1 aa3",exen:"What does this character mean?",cat:"mind",lv:"Intermediate"},
+{zh:"問題",jp:"man6 tai4",en:"question / problem",ex:"我有個問題想問。",exj:"ngo5 jau5 go3 man6 tai4 soeng2 man6",exen:"I have a question I'd like to ask.",cat:"mind",lv:"Intermediate"},
+{zh:"環境",jp:"waan4 ging2",en:"environment",ex:"我哋要保護環境。",exj:"ngo5 dei6 jiu3 bou2 wu6 waan4 ging2",exen:"We need to protect the environment.",cat:"society",lv:"Advanced"},
+{zh:"經濟",jp:"ging1 zai3",en:"economy",ex:"最近經濟唔係幾好。",exj:"zeoi3 gan6 ging1 zai3 m4 hai6 gei2 hou2",exen:"The economy hasn't been great lately.",cat:"society",lv:"Advanced"},
+{zh:"文化",jp:"man4 faa3",en:"culture",ex:"香港嘅飲食文化好豐富。",exj:"hoeng1 gong2 ge3 jam2 sik6 man4 faa3 hou2 fung1 fu3",exen:"Hong Kong's food culture is very rich.",cat:"society",lv:"Advanced"},
+{zh:"健康",jp:"gin6 hong1",en:"health / healthy",ex:"健康最緊要。",exj:"gin6 hong1 zeoi3 gan2 jiu3",exen:"Health matters most.",cat:"society",lv:"Advanced"},
+{zh:"機會",jp:"gei1 wui6",en:"opportunity",ex:"呢個係一個好好嘅機會。",exj:"ni1 go3 hai6 jat1 go3 hou2 hou2 ge3 gei1 wui6",exen:"This is a great opportunity.",cat:"society",lv:"Advanced"},
+{zh:"影響",jp:"jing2 hoeng2",en:"to influence / affect",ex:"天氣影響咗我哋嘅計劃。",exj:"tin1 hei3 jing2 hoeng2 zo2 ngo5 dei6 ge3 gai3 waak6",exen:"The weather affected our plans.",cat:"society",lv:"Advanced"},
+{zh:"發展",jp:"faat3 zin2",en:"to develop / development",ex:"呢區發展得好快。",exj:"ni1 keoi1 faat3 zin2 dak1 hou2 faai3",exen:"This district is developing quickly.",cat:"society",lv:"Advanced"},
+{zh:"經驗",jp:"ging1 jim6",en:"experience",ex:"佢有好多年教書經驗。",exj:"keoi5 jau5 hou2 do1 nin4 gaau3 syu1 ging1 jim6",exen:"She has many years of teaching experience.",cat:"society",lv:"Advanced"},
+{zh:"政府",jp:"zing3 fu2",en:"government",ex:"政府宣布咗新政策。",exj:"zing3 fu2 syun1 bou3 zo2 san1 zing3 caak3",exen:"The government announced a new policy.",cat:"society",lv:"Advanced"},
+{zh:"社會",jp:"se5 wui2",en:"society",ex:"社會不斷咁變緊。",exj:"se5 wui2 bat1 dyun6 gam2 bin3 gan2",exen:"Society keeps on changing.",cat:"society",lv:"Advanced"}
+];
+const PHRASES = [
+{en:"Good morning!",zh:"早晨！",jp:"zou2 san4",lv:"Beginner"},
+{en:"Good night.",zh:"早唞。",jp:"zou2 tau2",lv:"Beginner"},
+{en:"Thank you! (for a favour or service)",zh:"唔該！",jp:"m4 goi1",lv:"Beginner",note:"Use 唔該 for services and favours; 多謝 is for gifts and compliments."},
+{en:"Thank you! (for a gift)",zh:"多謝！",jp:"do1 ze6",lv:"Beginner"},
+{en:"Sorry.",zh:"對唔住。",jp:"deoi3 m4 zyu6",lv:"Beginner"},
+{en:"Where is the bathroom?",zh:"廁所喺邊度呀？",jp:"ci3 so2 hai2 bin1 dou6 aa3",lv:"Beginner"},
+{en:"How much does this cost?",zh:"呢個幾多錢呀？",jp:"ni1 go3 gei2 do1 cin2 aa3",lv:"Beginner"},
+{en:"I want to eat dim sum.",zh:"我想食點心。",jp:"ngo5 soeng2 sik6 dim2 sam1",lv:"Beginner"},
+{en:"I don't understand.",zh:"我唔明。",jp:"ngo5 m4 ming4",lv:"Beginner"},
+{en:"What's your name?",zh:"你叫咩名呀？",jp:"nei5 giu3 me1 meng2 aa3",lv:"Beginner"},
+{en:"My name is Anna.",zh:"我叫 Anna。",jp:"ngo5 giu3 Anna",lv:"Beginner"},
+{en:"I'm hungry.",zh:"我好肚餓。",jp:"ngo5 hou2 tou5 ngo6",lv:"Beginner"},
+{en:"I'm thirsty.",zh:"我好頸渴。",jp:"ngo5 hou2 geng2 hot3",lv:"Beginner"},
+{en:"What is this?",zh:"呢個係乜嘢嚟㗎？",jp:"ni1 go3 hai6 mat1 je5 lai4 gaa3",lv:"Beginner"},
+{en:"I need to brush my teeth.",zh:"我要刷牙。",jp:"ngo5 jiu3 caat3 ngaa4",lv:"Beginner"},
+{en:"Please speak more slowly.",zh:"唔該講慢啲。",jp:"m4 goi1 gong2 maan6 di1",lv:"Beginner"},
+{en:"I want a cup of milk tea.",zh:"我想要一杯奶茶。",jp:"ngo5 soeng2 jiu3 jat1 bui1 naai5 caa4",lv:"Beginner"},
+{en:"See you tomorrow!",zh:"聽日見！",jp:"ting1 jat6 gin3",lv:"Beginner"},
+{en:"I don't want it, thanks.",zh:"我唔要喇，唔該。",jp:"ngo5 m4 jiu3 laa3, m4 goi1",lv:"Beginner"},
+{en:"No problem!",zh:"冇問題！",jp:"mou5 man6 tai4",lv:"Beginner"},
+{en:"Do you speak English?",zh:"你識唔識講英文呀？",jp:"nei5 sik1 m4 sik1 gong2 jing1 man2 aa3",lv:"Beginner"},
+{en:"I'm learning Cantonese.",zh:"我學緊廣東話。",jp:"ngo5 hok6 gan2 gwong2 dung1 waa2",lv:"Beginner"},
+{en:"Excuse me, coming through.",zh:"唔該借借。",jp:"m4 goi1 ze3 ze3",lv:"Beginner",note:"Essential on the MTR — the polite way to squeeze past people."},
+{en:"The bill, please.",zh:"唔該埋單。",jp:"m4 goi1 maai4 daan1",lv:"Elementary"},
+{en:"Can you help me?",zh:"你可唔可以幫我呀？",jp:"nei5 ho2 m4 ho2 ji5 bong1 ngo5 aa3",lv:"Elementary"},
+{en:"What time is it now?",zh:"而家幾點呀？",jp:"ji4 gaa1 gei2 dim2 aa3",lv:"Elementary"},
+{en:"Too expensive — can you make it cheaper?",zh:"太貴喇，平啲得唔得呀？",jp:"taai3 gwai3 laa3, peng4 di1 dak1 m4 dak1 aa3",lv:"Elementary"},
+{en:"Have you eaten yet?",zh:"你食咗飯未呀？",jp:"nei5 sik6 zo2 faan6 mei6 aa3",lv:"Elementary",note:"A classic Cantonese greeting — it means \"how are you?\" as much as it asks about food."},
+{en:"It's raining — bring an umbrella.",zh:"落緊雨呀，帶把遮啦。",jp:"lok6 gan2 jyu5 aa3, daai3 baa2 ze1 laa1",lv:"Elementary"},
+{en:"I'll call you later.",zh:"我遲啲打電話畀你。",jp:"ngo5 ci4 di1 daa2 din6 waa2 bei2 nei5",lv:"Elementary"},
+{en:"I can't find my keys.",zh:"我搵唔到啲鎖匙。",jp:"ngo5 wan2 m4 dou2 di1 so2 si4",lv:"Elementary"},
+{en:"Turn left, then go straight.",zh:"轉左，然後直行。",jp:"zyun3 zo2, jin4 hau6 zik6 haang4",lv:"Elementary"},
+{en:"I like to play basketball with my friends.",zh:"我鍾意同朋友打籃球。",jp:"ngo5 zung1 ji3 tung4 pang4 jau5 daa2 laam4 kau4",lv:"Elementary"},
+{en:"Where is the MTR station?",zh:"地鐵站喺邊度呀？",jp:"dei6 tit3 zaam6 hai2 bin1 dou6 aa3",lv:"Elementary"},
+{en:"I'm going to Hong Kong next week.",zh:"我下個星期去香港。",jp:"ngo5 haa6 go3 sing1 kei4 heoi3 hoeng1 gong2",lv:"Elementary"},
+{en:"Can I try this one on?",zh:"可唔可以試下呢件呀？",jp:"ho2 m4 ho2 ji5 si3 haa5 ni1 gin6 aa3",lv:"Elementary"},
+{en:"I've been learning Cantonese for two months.",zh:"我學咗兩個月廣東話。",jp:"ngo5 hok6 zo2 loeng5 go3 jyut6 gwong2 dung1 waa2",lv:"Elementary"},
+{en:"Wait a moment, please.",zh:"唔該等一陣。",jp:"m4 goi1 dang2 jat1 zan6",lv:"Elementary"},
+{en:"Takeaway, please.",zh:"唔該，攞走。",jp:"m4 goi1, lo2 zau2",lv:"Elementary",note:"At a cha chaan teng you'll also hear 行街 (haang4 gaai1) — literally \"walk the street\"."},
+{en:"What do you recommend?",zh:"有乜嘢好介紹呀？",jp:"jau5 mat1 je5 hou2 gaai3 siu6 aa3",lv:"Elementary"},
+{en:"I'm a little tired today.",zh:"我今日有啲攰。",jp:"ngo5 gam1 jat6 jau5 di1 gui6",lv:"Elementary"},
+{en:"Less ice, please.",zh:"唔該少冰。",jp:"m4 goi1 siu2 bing1",lv:"Elementary"},
+{en:"If it doesn't rain tomorrow, let's go hiking.",zh:"如果聽日唔落雨，我哋去行山啦。",jp:"jyu4 gwo2 ting1 jat6 m4 lok6 jyu5, ngo5 dei6 heoi3 haang4 saan1 laa1",lv:"Intermediate"},
+{en:"I'd rather stay home and watch TV.",zh:"我寧願留喺屋企睇電視。",jp:"ngo5 ning4 jyun2 lau4 hai2 uk1 kei2 tai2 din6 si6",lv:"Intermediate"},
+{en:"This is the best dim sum I've ever had.",zh:"呢啲係我食過最好食嘅點心。",jp:"ni1 di1 hai6 ngo5 sik6 gwo3 zeoi3 hou2 sik6 ge3 dim2 sam1",lv:"Intermediate"},
+{en:"I've never been there before.",zh:"我從來未去過嗰度。",jp:"ngo5 cung4 loi4 mei6 heoi3 gwo3 go2 dou6",lv:"Intermediate"},
+{en:"The weather is getting colder and colder.",zh:"天氣越嚟越凍。",jp:"tin1 hei3 jyut6 lai4 jyut6 dung3",lv:"Intermediate"},
+{en:"Could you say that one more time?",zh:"可唔可以再講多一次呀？",jp:"ho2 m4 ho2 ji5 zoi3 gong2 do1 jat1 ci3 aa3",lv:"Intermediate"},
+{en:"I almost missed the last train.",zh:"我差啲趕唔切尾班車。",jp:"ngo5 caa1 di1 gon2 m4 cit3 mei5 baan1 ce1",lv:"Intermediate"},
+{en:"It depends on the weather.",zh:"睇天氣點啦。",jp:"tai2 tin1 hei3 dim2 laa1",lv:"Intermediate"},
+{en:"Long time no see! How have you been?",zh:"好耐冇見！最近點呀？",jp:"hou2 noi6 mou5 gin3! zeoi3 gan6 dim2 aa3",lv:"Intermediate"},
+{en:"Don't worry — take your time.",zh:"唔使急，慢慢嚟。",jp:"m4 sai2 gap1, maan6 maan2 lai4",lv:"Intermediate"},
+{en:"I heard this restaurant needs reservations.",zh:"聽講呢間餐廳要訂位。",jp:"teng1 gong2 ni1 gaan1 caan1 teng1 jiu3 deng6 wai2",lv:"Intermediate"},
+{en:"My Cantonese still isn't good enough.",zh:"我啲廣東話仲未夠好。",jp:"ngo5 di1 gwong2 dung1 waa2 zung6 mei6 gau3 hou2",lv:"Intermediate"},
+{en:"Even though I'm busy, I still make time to exercise.",zh:"雖然我好忙，但係都會抽時間做運動。",jp:"seoi1 jin4 ngo5 hou2 mong4, daan6 hai6 dou1 wui5 cau1 si4 gaan3 zou6 wan6 dung6",lv:"Advanced"},
+{en:"If I'd known earlier, I wouldn't have gone.",zh:"如果我早啲知，我就唔會去喇。",jp:"jyu4 gwo2 ngo5 zou2 di1 zi1, ngo5 zau6 m4 wui5 heoi3 laa3",lv:"Advanced"},
+{en:"It's not that I don't want to help — I really don't have time.",zh:"唔係我唔想幫，係我真係冇時間。",jp:"m4 hai6 ngo5 m4 soeng2 bong1, hai6 ngo5 zan1 hai6 mou5 si4 gaan3",lv:"Advanced"},
+{en:"No matter what happens, I'll support you.",zh:"無論發生咩事，我都會支持你。",jp:"mou4 leon6 faat3 sang1 me1 si6, ngo5 dou1 wui5 zi1 ci4 nei5",lv:"Advanced"},
+{en:"The more I learn, the more interesting I find it.",zh:"我越學越覺得有趣。",jp:"ngo5 jyut6 hok6 jyut6 gok3 dak1 jau5 ceoi3",lv:"Advanced"},
+{en:"He speaks Cantonese as fluently as a local.",zh:"佢講廣東話好似本地人咁流利。",jp:"keoi5 gong2 gwong2 dung1 waa2 hou2 ci5 bun2 dei6 jan4 gam3 lau4 lei6",lv:"Advanced"},
+{en:"Living in a big city has its pros and cons.",zh:"喺大城市生活有好有唔好。",jp:"hai2 daai6 sing4 si5 sang1 wut6 jau5 hou2 jau5 m4 hou2",lv:"Advanced"},
+{en:"I was planning to go out, but then it started pouring.",zh:"我本來打算出街，點知落起大雨。",jp:"ngo5 bun2 loi4 daa2 syun3 ceot1 gaai1, dim2 zi1 lok6 hei2 daai6 jyu5",lv:"Advanced"}
+];
+const LEVELS = ["Beginner","Elementary","Intermediate","Advanced"];
+const LEVEL_ZH = {Beginner:"入門",Elementary:"初級",Intermediate:"中級",Advanced:"高級"};
+const CATEGORIES = [
+["all","全部","All"],["body","身體","Body"],["nature","大自然","Nature"],["weather","天氣","Weather"],
+["animals","動物","Animals"],["verbs","動作","Actions"],["people","人物","People"],["questions","疑問","Questions"],
+["objects","用品","Things"],["food","飲食","Food"],["time","時間","Time"],["numbers","數字","Numbers"],
+["places","地方","Places"],["greetings","禮貌","Politeness"],["adjectives","形容","Describing"],
+["colors","顏色","Colours"],["mind","思想","Mind"],["society","社會","Society"]
+];
+
+const S = {
+  mode: "words",
+  level: "Beginner",
+  category: "all",
+  direction: "en2zh",
+  deck: [],
+  pos: 0,
+  revealed: false,
+  done: false,
+  seen: 0,
+  good: 0,
+  bad: 0
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pool(mode, level, category){
+  if (mode === "phrases") return PHRASES.filter(p => p.lv === level);
+  return WORDS.filter(w => w.lv === level && (category === "all" || w.cat === category));
+}
+
+function buildDeck(){
+  S.deck = shuffle(pool(S.mode, S.level, S.category));
+  S.pos = 0;
+  S.revealed = false;
+  S.done = false;
+  S.seen = 0; S.good = 0; S.bad = 0;
+  render();
+}
+
+/* ── speech ── */
+let voices = [];
+let voiceStatus = "checking";
+function refreshVoices(){
+  if (!("speechSynthesis" in window)){ voiceStatus = "none"; paintVoicePill(); return; }
+  voices = speechSynthesis.getVoices();
+  const canto = pickCanto();
+  if (canto) voiceStatus = "canto";
+  else if (voices.some(v => /^zh/i.test(v.lang))) voiceStatus = "mandarin";
+  else if (voices.length === 0) voiceStatus = "checking";
+  else voiceStatus = "none";
+  paintVoicePill();
+}
+function pickCanto(){
+  return voices.find(v => /yue/i.test(v.lang)) ||
+         voices.find(v => /zh[-_]?HK/i.test(v.lang)) ||
+         null;
+}
+function pickFallback(){
+  return voices.find(v => /zh[-_]?TW/i.test(v.lang)) ||
+         voices.find(v => /^zh/i.test(v.lang)) ||
+         null;
+}
+function paintVoicePill(){
+  const pill = $("voicePill"), txt = $("voicePillText");
+  pill.classList.remove("ok","warn","bad");
+  if (voiceStatus === "canto"){ pill.classList.add("ok"); txt.textContent = "粵語 voice ready"; }
+  else if (voiceStatus === "mandarin"){ pill.classList.add("warn"); txt.textContent = "Mandarin voice fallback"; }
+  else if (voiceStatus === "checking"){ txt.textContent = "checking voice…"; }
+  else { pill.classList.add("bad"); txt.textContent = "no Chinese voice found"; }
+}
+function speak(text){
+  if (!("speechSynthesis" in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickCanto() || pickFallback();
+    if (v) u.voice = v;
+    u.lang = v ? v.lang : "zh-HK";
+    u.rate = 0.82;
+    speechSynthesis.speak(u);
+  } catch(e){ /* speech unavailable */ }
+}
+if ("speechSynthesis" in window){
+  speechSynthesis.onvoiceschanged = refreshVoices;
+}
+refreshVoices();
+setTimeout(refreshVoices, 600);
+
+/* ── helpers ── */
+function card(){ return S.deck[S.pos] || null; }
+function cantoSideOfCard(c){ return S.mode === "phrases" ? c.zh : c.zh; }
+function highlight(sentence, zh){
+  const safe = esc(sentence);
+  const target = esc(zh);
+  return safe.includes(target) ? safe.replace(target, '<span class="hl">' + target + '</span>') : safe;
+}
+
+/* ── render ── */
+function render(){
+  renderLevelTabs();
+  renderSubBar();
+  renderProgress();
+  renderCard();
+  renderStats();
+}
+
+function renderLevelTabs(){
+  const wrap = $("levelTabs");
+  wrap.innerHTML = "";
+  LEVELS.forEach(lv => {
+    const n = pool(S.mode, lv, S.mode === "words" ? S.category : "all").length;
+    const b = document.createElement("button");
+    b.className = "level-btn" + (S.level === lv ? " active" : "");
+    b.innerHTML = '<span class="zh">' + LEVEL_ZH[lv] + '</span> ' + lv + ' <span class="count">' + n + '</span>';
+    b.addEventListener("click", () => { S.level = lv; buildDeck(); });
+    wrap.appendChild(b);
+  });
+  $("modeWords").classList.toggle("active", S.mode === "words");
+  $("modeWords").setAttribute("aria-selected", S.mode === "words");
+  $("modePhrases").classList.toggle("active", S.mode === "phrases");
+  $("modePhrases").setAttribute("aria-selected", S.mode === "phrases");
+}
+
+function renderSubBar(){
+  const sub = $("subBar");
+  sub.style.display = S.mode === "words" ? "" : "none";
+  if (S.mode !== "words") return;
+  document.querySelectorAll(".dir-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.dir === S.direction);
+  });
+  const row = $("chipRow");
+  row.innerHTML = "";
+  CATEGORIES.forEach(([key, zh, en]) => {
+    if (key !== "all" && !WORDS.some(w => w.cat === key && w.lv === S.level)) return;
+    const c = document.createElement("button");
+    c.className = "chip" + (S.category === key ? " active" : "");
+    c.innerHTML = '<span class="zh">' + zh + '</span> ' + en;
+    c.addEventListener("click", () => { S.category = key; buildDeck(); });
+    row.appendChild(c);
+  });
+}
+
+function renderProgress(){
+  const total = S.deck.length;
+  const donePart = S.done ? total : S.pos;
+  $("progressFill").style.width = total ? (donePart / total * 100) + "%" : "0%";
+  $("progressLabel").textContent = total ? (S.done ? total : S.pos + 1) + " / " + total : "0 / 0";
+  $("routeChip").textContent = total ? (S.done ? total : S.pos + 1) + " / " + total : "– / –";
+  $("deckChip").textContent = LEVEL_ZH[S.level] + " " + S.level;
+}
+
+function renderCard(){
+  const body = $("cardBody");
+  const actions = $("actionRow");
+  const c = card();
+
+  if (S.deck.length === 0){
+    body.innerHTML = '<div class="empty-msg">No cards here yet.<br>Try another level or category.</div>';
+    actions.innerHTML = "";
+    return;
+  }
+
+  if (S.done){
+    const answered = S.good + S.bad;
+    const acc = answered ? Math.round(S.good / answered * 100) + "%" : "–";
+    body.innerHTML =
+      '<div class="done-title fade-in">好叻呀！</div>' +
+      '<div class="done-sub">hou2 lek1 aa3 — deck complete!</div>' +
+      '<div class="done-stats">' +
+        '<div class="done-stat"><div class="num">' + S.seen + '</div><div class="lbl">seen</div></div>' +
+        '<div class="done-stat"><div class="num good">' + S.good + '</div><div class="lbl">got it</div></div>' +
+        '<div class="done-stat"><div class="num bad">' + S.bad + '</div><div class="lbl">again</div></div>' +
+        '<div class="done-stat"><div class="num">' + acc + '</div><div class="lbl">accuracy</div></div>' +
+      '</div>';
+    actions.innerHTML = "";
+    const again = document.createElement("button");
+    again.className = "btn btn-reveal";
+    again.textContent = "Shuffle and go again";
+    again.addEventListener("click", buildDeck);
+    actions.appendChild(again);
+    return;
+  }
+
+  const frontIsCanto = (S.mode === "words" && S.direction === "zh2en");
+
+  if (!S.revealed){
+    if (frontIsCanto){
+      body.innerHTML =
+        '<div class="fade-in">' +
+        '<div class="prompt-eyebrow">what does this mean?</div>' +
+        '<div class="big-char' + (c.zh.length > 4 ? " long" : "") + '">' + esc(c.zh) + '</div>' +
+        '<button class="speak-btn" id="speakMain">' + speakerSvg() + ' hear it</button>' +
+        '<div class="hint">press <kbd>space</kbd> to reveal</div>' +
+        '</div>';
+      const sb = $("speakMain");
+      if (sb) sb.addEventListener("click", e => { e.stopPropagation(); speak(c.zh); });
+    } else {
+      body.innerHTML =
+        '<div class="fade-in">' +
+        '<div class="prompt-eyebrow">say it in cantonese</div>' +
+        '<div class="big-en">' + esc(c.en) + '</div>' +
+        '<div class="hint">say it out loud, then press <kbd>space</kbd></div>' +
+        '</div>';
+    }
+    actions.innerHTML = "";
+    const reveal = document.createElement("button");
+    reveal.className = "btn btn-reveal";
+    reveal.innerHTML = 'Reveal <span class="key">space</span>';
+    reveal.addEventListener("click", doReveal);
+    const skip = document.createElement("button");
+    skip.className = "btn btn-skip";
+    skip.innerHTML = 'Skip <span class="key">→</span>';
+    skip.addEventListener("click", doSkip);
+    actions.appendChild(reveal);
+    actions.appendChild(skip);
+  } else {
+    let html = '<div class="fade-in">';
+    html += '<div class="big-char' + (c.zh.length > 4 ? " long" : "") + '">' + esc(c.zh) + '</div>';
+    html += '<div class="jyutping">' + esc(c.jp) + '</div>';
+    html += '<div class="meaning">' + esc(c.en) + '</div>';
+    html += '<button class="speak-btn" id="speakMain">' + speakerSvg() + ' hear it again</button>';
+    if (S.mode === "words"){
+      html += '<div class="example-box">' +
+        '<div class="example-zh">' + highlight(c.ex, c.zh) + '</div>' +
+        '<div class="example-jp">' + esc(c.exj) + '</div>' +
+        '<div class="example-en">' + esc(c.exen) + '</div>' +
+        '<button class="example-speak" id="speakEx">play example sentence</button>' +
+        '</div>';
+    } else if (c.note){
+      html += '<div class="phrase-note">' + esc(c.note) + '</div>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    const sb = $("speakMain");
+    if (sb) sb.addEventListener("click", () => speak(c.zh));
+    const se = $("speakEx");
+    if (se) se.addEventListener("click", () => speak(c.ex));
+
+    actions.innerHTML = "";
+    const good = document.createElement("button");
+    good.className = "btn btn-good";
+    good.innerHTML = '識 Got it <span class="key">1</span>';
+    good.addEventListener("click", () => markCard(true));
+    const bad = document.createElement("button");
+    bad.className = "btn btn-again";
+    bad.innerHTML = '唔識 Again <span class="key">2</span>';
+    bad.addEventListener("click", () => markCard(false));
+    actions.appendChild(good);
+    actions.appendChild(bad);
+  }
+}
+
+function speakerSvg(){
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1c2.9.9 5 3.5 5 6.7s-2.1 5.8-5 6.7v2.1c4-.9 7-4.5 7-8.8s-3-7.9-7-8.8z"/></svg>';
+}
+
+function renderStats(){
+  $("statSeen").textContent = S.seen;
+  $("statGood").textContent = S.good;
+  $("statBad").textContent = S.bad;
+  const answered = S.good + S.bad;
+  $("statAcc").textContent = answered ? Math.round(S.good / answered * 100) + "%" : "–";
+}
+
+/* ── actions ── */
+function doReveal(){
+  if (S.done || S.revealed || S.deck.length === 0) return;
+  S.revealed = true;
+  S.seen++;
+  renderCard();
+  renderStats();
+  speak(card().zh);
+}
+
+function advance(){
+  S.revealed = false;
+  if (S.pos + 1 >= S.deck.length){
+    S.done = true;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+  } else {
+    S.pos++;
+  }
+  renderProgress();
+  renderCard();
+}
+
+function markCard(ok){
+  if (!S.revealed || S.done) return;
+  if (ok){ S.good++; toast("識咗！ nice one", "good"); }
+  else { S.bad++; toast("下次得㗎 — it will stick", "bad"); }
+  renderStats();
+  advance();
+}
+
+function doSkip(){
+  if (S.done || S.deck.length === 0) return;
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  advance();
+}
+
+let toastTimer = null;
+function toast(msg, kind){
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "toast show " + kind;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = "toast"; }, 1400);
+}
+
+/* ── wiring ── */
+$("modeWords").addEventListener("click", () => {
+  if (S.mode === "words") return;
+  S.mode = "words";
+  buildDeck();
+});
+$("modePhrases").addEventListener("click", () => {
+  if (S.mode === "phrases") return;
+  S.mode = "phrases";
+  buildDeck();
+});
+document.querySelectorAll(".dir-btn").forEach(b => {
+  b.addEventListener("click", () => {
+    if (S.direction === b.dataset.dir) return;
+    S.direction = b.dataset.dir;
+    buildDeck();
+  });
+});
+
+document.addEventListener("keydown", e => {
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  if (e.code === "Space"){
+    e.preventDefault();
+    if (S.done || S.deck.length === 0) return;
+    if (!S.revealed) doReveal();
+    else speak(card().zh);
+  } else if (e.key === "1"){
+    markCard(true);
+  } else if (e.key === "2"){
+    markCard(false);
+  } else if (e.key === "ArrowRight"){
+    e.preventDefault();
+    doSkip();
+  } else if (e.key === "p" || e.key === "P"){
+    if (!S.done && S.deck.length){
+      if (S.revealed || (S.mode === "words" && S.direction === "zh2en")) speak(card().zh);
+    }
+  }
+});
+
+buildDeck();
+</script>
+</body>
+</html>
